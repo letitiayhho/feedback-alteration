@@ -10,10 +10,10 @@ for subject_root in DATA_ROOT.iterdir():
         if not pitch_tier.name.endswith(".PitchTier"):
             continue
         numbers, values = parse_pitch_tier(pitch_tier)
-        subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, unk, block = parse_file_name(path)
+        subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, time_run, block = parse_file_name(path)
         with open('data.csv', 'w', newline = '') as csvfile:
             data = csv.writer(csvfile)
-            data.writerow([subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, unk, block, numbers, values])
+            data.writerow([subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, time_run, block, numbers, values])
 
 
 def parse_pitch_tier(path):
@@ -33,7 +33,7 @@ def parse_pitch_tier(path):
 
 def parse_file_name(path):
     file_name = path.stem
-    subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, _, date_run, unk, block = file_name.split("_")
+    subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, _, date_run, time_run, block = file_name.split("_")
     subject = int(subject[1:])
     phasename = int(phasename[1:])
     num_rep = int(num_rep[1:])
@@ -41,14 +41,4 @@ def parse_file_name(path):
     num_formed = int(num_formed[1:])
     num_uttered = int(num_uttered[1:])
     block = int(block[1])
-    return subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, unk, block
-
-#path = Path("share/hcnlab/S6_FAE_P6_R32_T1_F712_U108_HECK_O_BSUBJECT6_20160518_HR_[4].PitchTier")
-#numbers, values = parse_pitch_tier("test.PitchTier")
-#print(type(numbers))
-#subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, unk, block = parse_file_name(path)
-#with open('data.csv', 'w', newline = '') as csvfile:
-    #data = csv.writer(csvfile)
-    #data.writerow([subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, unk, block, numbers, values])
-#print(parse_pitch_tier_file_name(path))
-#S6_FAE_P6_R32_T1_F712_U108_HECK_O_BSUBJECT6_20160518_HR_[4]
+    return subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, time_run, block
