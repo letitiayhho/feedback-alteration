@@ -1,7 +1,6 @@
 from pathlib import Path
 import csv
 
-#if False:
 DATA_ROOT = Path("/share/hcnlab/IND_all/Exp1_data/")
 
 for subject_root in DATA_ROOT.iterdir():
@@ -10,7 +9,12 @@ for subject_root in DATA_ROOT.iterdir():
     for pitch_tier in (subject_root / "wave_files/pitchtiers").iterdir():
         if not pitch_tier.name.endswith(".PitchTier"):
             continue
-        print(pitch_tier)
+        numbers, values = parse_pitch_tier(pitch_tier)
+        subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, unk, block = parse_file_name(path)
+        with open('data.csv', 'w', newline = '') as csvfile:
+            data = csv.writer(csvfile)
+            data.writerow([subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, unk, block, numbers, values])
+
 
 def parse_pitch_tier(path):
     numbers = []
@@ -27,7 +31,7 @@ def parse_pitch_tier(path):
                 values.append(value)
     return numbers, values
 
-def parse_pitch_tier_file_name(path):
+def parse_file_name(path):
     file_name = path.stem
     subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, _, date_run, unk, block = file_name.split("_")
     subject = int(subject[1:])
@@ -39,7 +43,12 @@ def parse_pitch_tier_file_name(path):
     block = int(block[1])
     return subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, unk, block
 
+#path = Path("share/hcnlab/S6_FAE_P6_R32_T1_F712_U108_HECK_O_BSUBJECT6_20160518_HR_[4].PitchTier")
 #numbers, values = parse_pitch_tier("test.PitchTier")
-#path = Path('share/hcnlab/S6_FAE_P6_R32_T1_F712_U108_HECK_O_BSUBJECT6_20160518_HR_[4].PitchTier')
+#print(type(numbers))
+#subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, unk, block = parse_file_name(path)
+#with open('data.csv', 'w', newline = '') as csvfile:
+    #data = csv.writer(csvfile)
+    #data.writerow([subject, exp, phasename, num_rep, num_trial, num_formed, num_uttered, prompt, in_or_out, date_run, unk, block, numbers, values])
 #print(parse_pitch_tier_file_name(path))
 #S6_FAE_P6_R32_T1_F712_U108_HECK_O_BSUBJECT6_20160518_HR_[4]
