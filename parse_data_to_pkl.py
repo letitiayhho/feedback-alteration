@@ -2,10 +2,68 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from dataclasses import dataclass
+
+@dataclass
+class TrialMetadata:
+    subject: int
+    exp: str
+    phasename: int
+    num_rep: int
+    num_trial: int
+    num_formed: int
+    num_uttered: int
+    prompt: str
+    in_or_out: str
+    date_run: str
+    time_run: str
+    block: int
+
+    @classmethod
+    def from_filename(cls, filename: str) -> "TrialMetadata":
+        (
+            subject,
+            exp,
+            phasename,
+            num_rep,
+            num_trial,
+            num_formed,
+            num_uttered,
+            prompt,
+            in_or_out,
+            _,
+            date_run,
+            time_run,
+            *rest,
+        ) = filename.split("_")
+
+        # Handle the user accidentally suffixing with "__x__" instead
+        # of "_[x]_" :(
+        if len(rest) == 1:
+            block = rest[0][1]
+        elif len(rest) == 3:
+            block = rest[1]
+        else:
+            raise ValueError(f"Too many _s ({filename!r})")
+
+        return cls(
+            subject=int(subject[1:]),
+            exp=exp,
+            phasename= int(phasename[1:]),
+            num_rep=int(num_rep[1:]),
+            num_trial=int(num_trial[1:]),
+            num_formed=int(num_formed[1:]),
+            num_uttered=int(num_uttered[1:]),
+            prompt=prompt,
+            in_or_out=in_or_out,
+            date_run=date_run,
+            time_run=time_run,
+            block=int(block),
+        )
 
 def parse_pitch_tier(path):
-    print("parsing:", path.name) #remove
-    values = []
+    print("parsing:", path.name, "\r")
+    pitches = []
     start_offset = None
     index = 0
 
@@ -33,7 +91,7 @@ def parse_pitch_tier(path):
                     expected_number = start_offset + (index * 0.001)
                     if abs(number - expected_number) < 1e-5:
                         break
-                    values.append(float("NaN"))
+                    pitches.append(float("NaN"))
                     index += 1
                     size += 1
 
@@ -41,69 +99,34 @@ def parse_pitch_tier(path):
 
             # Record pitch value
             if "value" in line:
-                _, value = line.split("=")
-                value = float(value.strip())
-                values.append(value)
+                _, pitch = line.split("=")
+                pitch = float(pitch.strip())
+                pitches.append(pitch)
                 index += 1
                 continue
 
     # Checks
-    if len(values) != size:
-        raise ValueError(f"Values array size {len(values)} doesn't match expected size {size}")
-    return values
-
-def parse_file_name(path):
-    file_name = path.stem
-    (
-        subject,
-        exp,
-        phasename,
-        num_rep,
-        num_trial,
-        num_formed,
-        num_uttered,
-        prompt,
-        in_or_out,
-        _,
-        date_run,
-        time_run,
-        *rest,
-    ) = file_name.split("_")
-
-    # Handle the user accidentally suffixing with "__x__" instead
-    # of "_[x]_" :(
-    if len(rest) == 1:
-        block = rest[0][1]
-    elif len(rest) == 3:
-        block = rest[1]
-    else:
-        raise ValueError(f"Too many _s ({file_name!r})")
-
-    subject = int(subject[1:])
-    phasename = int(phasename[1:])
-    num_rep = int(num_rep[1:])
-    num_trial = int(num_trial[1:])
-    num_formed = int(num_formed[1:])
-    num_uttered = int(num_uttered[1:])
-    block = int(block)
-    return (
-        subject,
-        exp,
-        phasename,
-        num_rep,
-        num_trial,
-        num_formed,
-        num_uttered,
-        prompt,
-        in_or_out,
-        date_run,
-        time_run,
-        block,
-    )
+    if len(pitches) != size:
+        raise ValueError(f"Pitches array size {len(pitches)} doesn't match expected size {size}")
+    return pitches
 
 DATA_ROOT = Path("./share/hcnlab/IND_all/Exp1_data/")
 
-values = []
+agg = {
+    "subject": [],
+    "exp": [],
+    "phasename": [],
+    "num_rep": [],
+    "num_trial": [],
+    "num_formed": [],
+    "num_uttered": [],
+    "prompt": [],
+    "in_or_out": [],
+    "date_run": [],
+    "time_run": [],
+    "block": [],
+    "pitches": [],
+}
 
 for subject_root in DATA_ROOT.iterdir():
     if not subject_root.name.startswith("SUBJECT"):
@@ -111,37 +134,28 @@ for subject_root in DATA_ROOT.iterdir():
     for pitch_tier in (subject_root / "wave_files/pitchtiers").iterdir():
         if not pitch_tier.name.endswith(".PitchTier"):
             continue
-        (
-            subject,
-            exp,
-            phasename,
-            num_rep,
-            num_trial,
-            num_formed,
-            num_uttered,
-            prompt,
-            in_or_out,
-            date_run,
-            time_run,
-            block,
-        ) = parse_file_name(pitch_tier)
-        values.append(parse_pitch_tier(pitch_tier))
 
-# Create pandas df
-data_dict = {
-        "subject": subject,
-        "exp": exp,
-        "phasename": phasename,
-        "num_rep": num_rep,
-        "num_trial": num_trial,
-        "num_formed": num_formed,
-        "num_uttered": num_uttered,
-        "prompt": prompt,
-        "in_or_out": in_or_out,
-        "date_run": date_run,
-        "time_run": time_run,
-        "block": block,
-        "values": values
-        }
-data_frame = pd.DataFrame(data_dict)
+        # Metadata from filename
+        trial = TrialMetadata.from_filename(pitch_tier.stem)
+        agg["subject"].append(trial.subject)
+        agg["exp"].append(trial.exp)
+        agg["phasename"].append(trial.phasename)
+        agg["num_rep"].append(trial.num_rep)
+        agg["num_trial"].append(trial.num_trial)
+        agg["num_formed"].append(trial.num_formed)
+        agg["num_uttered"].append(trial.num_uttered)
+        agg["prompt"].append(trial.prompt)
+        agg["in_or_out"].append(trial.in_or_out)
+        agg["date_run"].append(trial.date_run)
+        agg["time_run"].append(trial.time_run)
+        agg["block"].append(trial.block)
+
+        # Data from Praat file
+        pitches = parse_pitch_tier(pitch_tier)
+        agg["pitches"].append(pitches)
+
+    break
+
+
+data_frame = pd.DataFrame(agg)
 data_frame.to_pickle("data.pkl")
