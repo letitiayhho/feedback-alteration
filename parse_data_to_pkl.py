@@ -1,6 +1,7 @@
 from pathlib import Path
-import numpy as np
-import pandas as pd
+import numpy as np  # type: ignore
+import pandas as pd  # type: ignore
+from typing import Dict, List, Union
 
 from dataclasses import dataclass
 
@@ -61,7 +62,7 @@ class TrialMetadata:
             block=int(block),
         )
 
-def parse_pitch_tier(path):
+def parse_pitch_tier(path: Path) -> pd.Series:
     print("parsing:", path.name, "\r")
     pitches = []
     start_offset = None
@@ -70,19 +71,19 @@ def parse_pitch_tier(path):
     with open(path) as f:
         for line in f:
             if "size" in line:
-                _, size = line.split("=")
-                size = float(size.strip())
+                _, size_str = line.split("=")
+                size = float(size_str.strip())
                 continue
 
             if "points " in line:
-                _, point = line.split("[")
-                point = float(point[:-3])
+                _, point_str = line.split("[")
+                point = float(point_str[:-3])
                 continue
 
             if "number" in line:
 
-                _, number = line.split("=")
-                number = float(number.strip())
+                _, number_str = line.split("=")
+                number = float(number_str.strip())
 
                 if start_offset is None:
                     start_offset = number
@@ -99,8 +100,8 @@ def parse_pitch_tier(path):
 
             # Record pitch value
             if "value" in line:
-                _, pitch = line.split("=")
-                pitch = float(pitch.strip())
+                _, pitch_str = line.split("=")
+                pitch = float(pitch_str.strip())
                 pitches.append(pitch)
                 index += 1
                 continue
@@ -108,11 +109,13 @@ def parse_pitch_tier(path):
     # Checks
     if len(pitches) != size:
         raise ValueError(f"Pitches array size {len(pitches)} doesn't match expected size {size}")
+
+    pitches = pd.Series(pitches)
     return pitches
 
 DATA_ROOT = Path("./share/hcnlab/IND_all/Exp1_data/")
 
-agg = {
+agg: Dict[str, List[Union[str, int, pd.Series]]] = {
     "subject": [],
     "exp": [],
     "phasename": [],
