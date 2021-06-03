@@ -154,8 +154,5 @@ for subject_root in DATA_ROOT.iterdir():
         pitches = parse_pitch_tier(pitch_tier)
         agg["pitches"].append(pitches)
 
-    break
-
-
 data_frame = pd.DataFrame(agg)
 data_frame.to_pickle("data.pkl")
