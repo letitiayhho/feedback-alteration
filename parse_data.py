@@ -14,10 +14,12 @@ def parse_pitch_tier(path):
             if "size" in line:
                 _, size = line.split("=")
                 size = float(size.strip())
+                continue
 
             if "points " in line:
                 _, point = line.split("[")
                 point = float(point[:-3])
+                continue
 
             if "number" in line:
 
@@ -35,12 +37,15 @@ def parse_pitch_tier(path):
                     index += 1
                     size += 1
 
+                continue
+
             # Record pitch value
             if "value" in line:
                 _, value = line.split("=")
                 value = float(value.strip())
                 values.append(value)
                 index += 1
+                continue
 
     # Checks
     if len(values) != size:
@@ -48,7 +53,7 @@ def parse_pitch_tier(path):
     return values
 
 def parse_file_name(path):
-    file_name = path.stem
+    file_name = path.name
     (
         subject,
         exp,
