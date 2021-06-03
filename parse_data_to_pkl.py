@@ -1,5 +1,4 @@
 from pathlib import Path
-import csv
 import numpy as np
 import pandas as pd
 
@@ -104,65 +103,31 @@ def parse_file_name(path):
 
 DATA_ROOT = Path("./share/hcnlab/IND_all/Exp1_data/")
 
-with open("data.csv", "w") as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow(
-        [
-            "subject",
-            "exp",
-            "phasename",
-            "num_rep",
-            "num_trial",
-            "num_formed",
-            "num_uttered",
-            "prompt",
-            "in_or_out",
-            "date_run",
-            "time_run",
-            "block",
-            "values",
-        ]
-    )
-    for subject_root in DATA_ROOT.iterdir():
-        if not subject_root.name.startswith("SUBJECT"):
-            continue
-        for pitch_tier in (subject_root / "wave_files/pitchtiers").iterdir():
-            if not pitch_tier.name.endswith(".PitchTier"):
-                continue
-            values = parse_pitch_tier(pitch_tier)
-            (
-                subject,
-                exp,
-                phasename,
-                num_rep,
-                num_trial,
-                num_formed,
-                num_uttered,
-                prompt,
-                in_or_out,
-                date_run,
-                time_run,
-                block,
-            ) = parse_file_name(pitch_tier)
-            writer.writerow(
-                [
-                    subject,
-                    exp,
-                    phasename,
-                    num_rep,
-                    num_trial,
-                    num_formed,
-                    num_uttered,
-                    prompt,
-                    in_or_out,
-                    date_run,
-                    time_run,
-                    block,
-                    values,
-                ]
-            )
+values = []
 
-# Convert to pandas df
+for subject_root in DATA_ROOT.iterdir():
+    if not subject_root.name.startswith("SUBJECT"):
+        continue
+    for pitch_tier in (subject_root / "wave_files/pitchtiers").iterdir():
+        if not pitch_tier.name.endswith(".PitchTier"):
+            continue
+        (
+            subject,
+            exp,
+            phasename,
+            num_rep,
+            num_trial,
+            num_formed,
+            num_uttered,
+            prompt,
+            in_or_out,
+            date_run,
+            time_run,
+            block,
+        ) = parse_file_name(pitch_tier)
+        values.append(parse_pitch_tier(pitch_tier))
+
+# Create pandas df
 data_dict = {
         "subject": subject,
         "exp": exp,
