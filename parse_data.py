@@ -1,10 +1,11 @@
 from pathlib import Path
 import csv
-import math
+import numpy as np
+import pandas as pd
 
 
 def parse_pitch_tier(path):
-    print("parsing:", path.stem) #remove
+    print("parsing:", path.name) #remove
     values = []
     start_offset = None
     index = 0
@@ -53,7 +54,7 @@ def parse_pitch_tier(path):
     return values
 
 def parse_file_name(path):
-    file_name = path.name
+    file_name = path.stem
     (
         subject,
         exp,
@@ -160,3 +161,22 @@ with open("data.csv", "w") as csvfile:
                     values,
                 ]
             )
+
+# Convert to pandas df
+data_dict = {
+        "subject": subject,
+        "exp": exp,
+        "phasename": phasename,
+        "num_rep": num_rep,
+        "num_trial": num_trial,
+        "num_formed": num_formed,
+        "num_uttered": num_uttered,
+        "prompt": prompt,
+        "in_or_out": in_or_out,
+        "date_run": date_run,
+        "time_run": time_run,
+        "block": block,
+        "values": values
+        }
+data_frame = pd.DataFrame(data_dict)
+data_frame.to_pickle("data.pkl")
