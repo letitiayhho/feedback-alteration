@@ -108,6 +108,8 @@ def parse_pitch_tier(path):
     # Checks
     if len(pitches) != size:
         raise ValueError(f"Pitches array size {len(pitches)} doesn't match expected size {size}")
+
+    pitches = pd.Series(pitches)
     return pitches
 
 DATA_ROOT = Path("./share/hcnlab/IND_all/Exp1_data/")
